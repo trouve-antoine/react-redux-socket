@@ -18,7 +18,7 @@ const store = createStore(
     RootReducer,
     applyMiddleware(
       Thunk,
-      ReactActionSocketMiddleware
+      ReactActionSocketMiddleware("ws://localhost:3000/app1")
         .translators(clientActionTranslator)
         .onInit(initMessagesAtConnection))
   )

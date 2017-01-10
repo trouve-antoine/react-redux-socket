@@ -1,7 +1,5 @@
 const io = require('socket.io-client')
 
-const socket = io('ws://localhost:3000/app1')
-
 const SocketAction = function(action) {
   Object.assign(this, action)
   if(!this.payload) { this.payload  = { } }
@@ -13,7 +11,9 @@ const MakeSocketAction = function(action) {
   return new SocketAction(action)
 }
 
-const MakeReactActionSocketMiddleware = () => {
+const MakeReactActionSocketMiddleware = (url) => {
+  const socket = io(url || 'ws://localhost:3000/app1')
+
   const mp = {
     translate: (action, getState) => action,
     onInit: (dispatch, getState, socket) => { }
