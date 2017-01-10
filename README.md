@@ -4,7 +4,7 @@ Lightweight library to handle redux actions at server side using sockets.
 
 That means that:
 
-- redux actions from the server can be re-router to a server (instead of the redux reducers)
+- redux actions can be re-router to a server (instead of the redux reducers)
 - a server can emit a redux action straight to the redux reducers
 
 It supports connection and reconnection in a custom yet (I hope) reliable way.
@@ -24,7 +24,6 @@ Implemented as a small redux middleware:
 
 ```
 import { ReactReduxSocketMiddleware } from 'react-redux-socket/client'
-import { initMessagesAtConnection } from 'redux-state/Messages'
 
 const store = createStore(
     RootReducer,
@@ -38,13 +37,29 @@ An action to the server can now be sent as usual using the `dispatch` function, 
 
 ```
 dispatch( MakeSocketAction({
-  type: "MY_ACTION_FROM_CLIENT"
+  type: "MY_ACTION_FROM_CLIENT_TO_SERVER"
 }) )
+```
+
+Actions from the server can be processed in reducers like normal actions:
+
+```
+function myReducer(oldState, action) {
+  switch(action.type) {
+    case 'A_NORMAL_ACTION':
+      /* do stuffs */
+      return newState;
+    case 'MY_ANSWER_FROM_SERVER_TO_CLIENT':
+      /* do stuffs */
+      return newState
+  }
+  return oldState
+}
 ```
 
 ## Server side (basic usage)
 
-Example using express and socket.io (default):
+Example of index file using express and socket.io (default):
 
 ```
 const app = require('express')();
@@ -55,8 +70,8 @@ const ioActionHandler = require('react-redux-socket/server')
 
 const myHandler = function(action, { dispatch, broadcast }){
   switch(action.type) {
-    case 'MY_ACTION_FROM_CLIENT':
-      dispatch({ type: 'MY_ANSWER_TO_CLIENT' })
+    case 'MY_ACTION_FROM_CLIENT_TO_SERVER':
+      dispatch({ type: 'MY_ANSWER_FROM_SERVER_TO_CLIENT' })
       break;
     case 'MY_OTHER_ACTION_FROM_CLIENT':
       broadcast({ type: 'MY_ANSWER_TO_ALL_CLIENTS' })
@@ -94,12 +109,17 @@ Translators are registered when creating the middleware:
 
 ```
 ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-  .translators(clientActionTranslator)
+  .translators(clientActionTranslator, translator2, translator3)
 ```
+
+Translators are executed in the order specified at initialization, with side effects.
+That is, `translator2` and `translator3` will be able to access `socket_meta.user` as specified by `clientActionTranslator`.
+
+Translators are only called on actions from the client to the server, before sending to the server.
 
 ### Client-side initialization hooks
 
-It possible to execute some code each tome the socket is being connected or re-connected.
+It possible to execute some code each time the socket is being connected or re-connected.
 For instance, this one sends a `GET_STATE` message to the server:
 
 ```
@@ -117,9 +137,17 @@ ReactReduxSocketMiddleware("ws://localhost:3000/app1")
    .onInit(getStateAtConnection)
 ```
 
+It is possible to use both `onInit` and `translators`, with as many parameters as needed:
+
+```
+ReactReduxSocketMiddleware("ws://localhost:3000/app1")
+   .onInit(getStateAtConnection, hook2, hook3)
+   .translators(clientActionTranslator, translator2, translator3)
+```
+
 ### Server-side handlers
 
-Handlers are passed the following parameters:
+Handlers are called with the following parameters:
 
 - `action`: the action
 - `extraArgs`, an object that contains:
