@@ -1,0 +1,19 @@
+{
+  "name": "react-redux-socket",
+  "version": "1.0.0",
+  "description": "Lightweight library to handle redux actions at server side using sockets",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "socket",
+    "redux",
+    "react"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trouve-antoine/react-redux-socket.git"
+  },
+  "author": "Antoine Trouvé",
+  "license": "MIT"
+}
