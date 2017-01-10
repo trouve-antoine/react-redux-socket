@@ -1,15 +1,15 @@
 {
-  "name": "neko",
+  "name": "sample-chat-gui",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sample chat application using react-redux-socket",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
     "start": "webpack-dev-server --port 3001 --progress --inline --hot"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Antoine Trouvé",
+  "license": "MIT",
   "devDependencies": {
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
@@ -19,9 +19,11 @@
     "check-types": "^7.0.1",
     "css-loader": "^0.25.0",
     "file-loader": "^0.9.0",
+    "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-hot-loader": "^3.0.0-beta.3",
     "react-redux": "^4.4.5",
+    "react-redux-socket": "^1.0.0",
     "react-tap-event-plugin": "^1.0.0",
     "redux": "^3.6.0",
     "redux-thunk": "^2.1.0",
@@ -35,7 +37,6 @@
     "superagent": "^2.3.0",
     "url-loader": "^0.5.7",
     "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.15.1",
-    "react-redux-socket": "^1.0.0"
+    "webpack-dev-server": "^1.15.1"
   }
 }
