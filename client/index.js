@@ -73,7 +73,7 @@ const MakeReactActionSocketMiddleware = (url) => {
   return middleware
 }
 
-const ReactActionSocketMiddleware = MakeReactActionSocketMiddleware()
+const ReactActionSocketMiddleware = MakeReactActionSocketMiddleware
 
 module.exports = {
   ReactActionSocketMiddleware,
