@@ -14,37 +14,33 @@ const MakeSocketAction = function(action) {
 const MakeReactActionSocketMiddleware = (url) => {
   const socket = io(url || 'ws://localhost:3000/app1')
 
+  let log = undefined
+
   const mp = {
-    translate: (action, getState) => action,
+    translate_in: (action, getState) => action,
+    translate_out: (action, getState) => action,
     onInit: (dispatch, getState, socket) => { }
   }
 
   const socketDispatch = (action, getState) => {
     if(action.constructor === SocketAction) {
-      socket.emit('react action', mp.translate(action, getState))
+      if(log) { log("Send action to server: ", action) }
+      socket.emit('react redux action', mp.translate_out(action, getState))
     } else {
       throw new Error("Unexpected action.")
     }
   }
 
   const middleware = ({ dispatch, getState }) => next => {
-    socket.on('react redux action', action => {
-      console.log('got action from server', action)
-      next(action)
+    socket.on('react redux action server', action => {
+      if(log) { log("Got action from server: ", action) }
+      dispatch(mp.translate_in(action, getState))
     })
 
     socket.on('react redux connected', () => {
-      console.log('got init')
+      if(log) { log("Got init message from server.") }
       mp.onInit(socketDispatch, getState, socket)
     })
-
-    // mp.onInit(socketDispatch, getState, socket)
-    // socket.on('connection', () => {
-    //   mp.onInit(socketDispatch, getState, socket)
-    // })
-    // socket.on('reconnect', () => {
-    //   mp.onInit(socketDispatch, getState, socket)
-    // })
 
     return action => {
       if(action.constructor === SocketAction) {
@@ -55,8 +51,16 @@ const MakeReactActionSocketMiddleware = (url) => {
     }
   }
 
-  middleware.translators = (...actionTranslators) => {
-    mp.translate = (a, getState) => {
+  middleware.translators_out = (...actionTranslators) => {
+    mp.translate_out = (a, getState) => {
+      actionTranslators.forEach(t => a = t(a, getState) || a)
+      return a
+    }
+    return middleware
+  }
+
+  middleware.translators_in = (...actionTranslators) => {
+    mp.translate_in = (a, getState) => {
       actionTranslators.forEach(t => a = t(a, getState) || a)
       return a
     }
@@ -67,6 +71,11 @@ const MakeReactActionSocketMiddleware = (url) => {
     mp.onInit = (...args) => {
       initHandlers.forEach(h => h(...args))
     }
+    return middleware
+  }
+
+  middleware.log = (_log)  => {
+    log = _log
     return middleware
   }
 

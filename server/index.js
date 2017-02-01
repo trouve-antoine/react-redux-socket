@@ -1,8 +1,8 @@
 module.exports = function(io, ...handlers) {
-  const broadcast = (action) => io.emit('react redux action', action)
+  const broadcast = (action) => io.emit('react redux action server', action)
 
   io.on('connection', function(socket){
-    const dispatch = (action) => socket.emit('react redux action', action)
+    const dispatch = (action) => socket.emit('react redux action server', action)
 
     const handle = (action) => {
       if(!action.meta) { action.meta = {} }
@@ -29,7 +29,7 @@ module.exports = function(io, ...handlers) {
       handle({ type: 'SOCKET_DISCONNECTED', socket_meta: { system_message } })
     })
 
-    socket.on('react action', function(action) {
+    socket.on('react redux action', function(action) {
       handle(action)
     })
   });
