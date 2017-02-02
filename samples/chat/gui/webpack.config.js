@@ -8,39 +8,33 @@ module.exports = {
     filename: 'build/bundle.js'
   },
 
+  devServer: {
+    host: '0.0.0.0',
+    port: 3001
+  },
+
   resolve: {
-    root: [ path.resolve('./src'), path.resolve('../') ],
+    modules: [ path.resolve('./src'), path.resolve('./node_modules') ],
+    alias: {
+      "@common": path.resolve('../common'),
+      "@src": path.resolve('./src')
+    }
   },
 
   module: {
     loaders: [
       {
         test: /\.js$/,
-        // exclude: /node_modules/,
-        loaders:[ 'babel-loader' ]
+        exclude: /node_modules/,
+        loader: 'babel-loader'
       },
       {
         test: /\.css$/,
         loader: 'style-loader!css-loader'
       },
       {
-        test: /\.png$/,
-        loader:'file-loader?name=./build/[hash].[ext]'
-      }, {
-        test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=application/font-woff&name=./build/[hash].[ext]"
-      }, {
-        test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=application/font-woff&name=./build/[hash].[ext]"
-      }, {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=application/octet-stream&name=./build/[hash].[ext]"
-      }, {
-        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "file?name=./build/[hash].[ext]"
-      }, {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=image/svg+xml&name=./build/[hash].[ext]"
+        test: /semantic-ui-css\/.*\.(woff|woff2|eot|png|ttf|svg)$/,
+        loader: "file-loader"
       }
     ]
   }

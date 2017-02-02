@@ -10,16 +10,19 @@ import { createStore, applyMiddleware } from 'redux'
 import Thunk from 'redux-thunk'
 import RootReducer from 'redux-state'
 import { ReactActionSocketMiddleware } from 'react-redux-socket/client'
-import { clientActionTranslator } from 'common/socket-authenticate'
+import { clientActionTranslator } from '@common/socket-authenticate'
 
-import { initMessagesAtConnection } from 'redux-state/Messages'
+import { Segment } from 'semantic-ui-react'
+
+import { initMessagesAtConnection, addPrefixToMessage } from 'redux-state/Messages'
 
 const store = createStore(
     RootReducer,
     applyMiddleware(
       Thunk,
       ReactActionSocketMiddleware("ws://localhost:3000/app1")
-        .translators(clientActionTranslator)
+        .translators_out(clientActionTranslator)
+        .translators_in(addPrefixToMessage("🐮"))
         .onInit(initMessagesAtConnection))
   )
 
@@ -27,15 +30,15 @@ const store = createStore(
 
 
 /********* The app */
-import Title from 'react-elements/Title'
+import CompositionForm from 'react-elements/CompositionForm'
 import MessageList from 'react-elements/MessageList'
 import { Provider } from 'react-redux'
 
 ReactDOM.render(
   <Provider store={store}>
-    <div>
-      <Title/>
+    <Segment style={{ margin: '1em', maxWidth: '40em' }}>
+      <CompositionForm/>
       <MessageList/>
-    </div>
+    </Segment>
   </Provider>,
   document.getElementById('main'));

@@ -11,6 +11,6 @@ let MessageList = (props) => {
 
 export default connect(function(state) {
   return {
-    messages: state.messages
+    messages: state.messages.reverse()
   }
 })(MessageList)

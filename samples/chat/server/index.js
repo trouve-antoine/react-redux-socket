@@ -1,8 +1,8 @@
-const path = require('path')
+const resolve_path = require('path').resolve
 
-require('./libs/include')(
-  __dirname,
-  path.resolve(__dirname, "..") )
+require('local-include-js')
+  .add(__dirname)
+  .alias("@common", resolve_path(__dirname, "../common"))
 
 const app = require('express')();
 const http = require('http').Server(app);
@@ -10,7 +10,7 @@ const io = require('socket.io')(http).of('app1');
 
 const ioActionHandler = require('react-redux-socket/server')
 
-const socketAuth = include('common/socket-authenticate')
+const socketAuth = include('@common/socket-authenticate')
 
 const log = console.log
 
