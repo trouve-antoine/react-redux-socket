@@ -190,6 +190,8 @@ const handler2 = function(action, args){
 
 In this example, `handler1` will be able to use `broadcast`, but not `handler3`.
 
+Handlers may also return Promises since version 1.3 of the package.
+
 ### Sever-side built-in handlers
 
 The packages comes with four sample handlers you may use as-it, or only for reference.
