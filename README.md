@@ -90,7 +90,7 @@ The actions from the server are handled at client side like normal redux actions
 
 ## Advanced usage
 
-### Client-side action translators
+### Client-side action translators (in, out)
 
 An action translator takes an action in input and output an action.
 For instance, this one adds the `user` field from the state inside all the actions that are bound the socket server:
@@ -105,11 +105,17 @@ function clientActionTranslator(action, getState) {
 }
 ```
 
+There are two types of transltors:
+
+- *in*: translate actions from the server before being dispatched
+- *out*: translate actions from the client to server before being sent
+
 Translators are registered when creating the middleware:
 
 ```
 ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-  .translators(clientActionTranslator, translator2, translator3)
+  .translators_in(clientActionTranslator, translator2, translator3)
+  .translators_out(...otherTranslators)
 ```
 
 Translators are executed in the order specified at initialization, with side effects.
@@ -254,7 +260,7 @@ Yet, you are free to use other other format: this won't cause any trouble.
 
 ## Hacking facts and reserved keywords
 
-The library uses the socket message `react redux action` in order to transfer actions.
+The library uses the socket message `react redux action` in order to transfer actions from the client to the server, and `react redux action server` for the other way around.
 
 The onInit hook uses the custom socket message `react redux connected` (sent by the server to the client).
 It is send by the server at `connection` and `reconnect`.
@@ -266,3 +272,4 @@ The folder `samples/chat` contains a sample chat program that uses all the funct
 - authentication
 - rooms
 - initialization handler
+- translators in and out
