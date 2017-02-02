@@ -39,7 +39,7 @@ const MakeReactActionSocketMiddleware = (url) => {
 
     socket.on('react redux connected', () => {
       if(log) { log("Got init message from server.") }
-      mp.onInit(socketDispatch, getState, socket)
+      mp.onInit(a => socketDispatch(a,getState), getState, socket)
     })
 
     return action => {

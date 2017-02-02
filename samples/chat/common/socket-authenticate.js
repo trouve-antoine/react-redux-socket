@@ -3,13 +3,10 @@ function roomName(action) {
 }
 
 /* client action translator_out */
-function clientActionTranslator(action) {
+function clientActionTranslator(action, getState) {
   const newAction = Object.assign({}, action)
 
-  newAction.socket_meta.user = {
-    name: "koko",
-    password: "123toto"
-  }
+  newAction.socket_meta.user = getState().credentials
 
   newAction.socket_meta.user.room = roomName(newAction)
 
@@ -23,15 +20,23 @@ function serverRoomName(action, args) {
 }
 
 /* server: check user and password */
-function serverAuthenticate(action, args) {
-  if(action.socket_meta.system_message) { return true }
-  if(!action.socket_meta.user) { return false }
-  return action.socket_meta.user.name === "koko"
-    && action.socket_meta.user.password === "123toto"
+/* try to use promise */
+function promiseServerAuthenticate(action, args) {
+  return new Promise( (resolve, reject) => {
+    /* system message: no authentication */
+    if(action.socket_meta.system_message) { return resolve(true) }
+
+    console.log("action to check authentication", action)
+
+    if(!action.socket_meta.user) { return resolve(false) }
+
+    resolve( action.socket_meta.user.name === "koko"
+      && action.socket_meta.user.password === "123toto" )
+  })
 }
 
 module.exports = {
   clientActionTranslator,
   serverRoomName,
-  serverAuthenticate
+  promiseServerAuthenticate
 }

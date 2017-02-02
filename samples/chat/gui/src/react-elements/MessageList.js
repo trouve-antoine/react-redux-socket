@@ -1,16 +1,19 @@
 import React from 'react'
 import { connect } from 'react-redux'
 
-let MessageList = (props) => {
+const MessageList = (props) => {
+  const messages = [...props.messages]
+  messages.reverse()
+
   return (
     <ul>
-    {props.messages.map((m,i) => (<li key={i}>{m}</li>))}
+    {messages.map((m,i) => (<li key={i}>{m}</li>))}
     </ul>
   )
 }
 
 export default connect(function(state) {
   return {
-    messages: state.messages.reverse()
+    messages: state.messages
   }
 })(MessageList)

@@ -1,11 +1,18 @@
-module.exports = (checkCredentials) => {
+const refuseCredentials = (args) => {
+  args.dispatch({
+    type: "AUTHENTICATION_ERROR"
+  })
+  return false
+}
+
+
+module.exports = (promiseCheckCredentials) => {
   const handler = (action, args) => {
-    if(!checkCredentials(action, args)) {
-      args.dispatch({
-        type: "AUTHENTICATION_ERROR"
+    return promiseCheckCredentials(action, args)
+      .then(areCredentialsCorrect => {
+        if(!areCredentialsCorrect) { return refuseCredentials(args) }
+        return true
       })
-      return false
-    }
   }
 
   let log = undefined;

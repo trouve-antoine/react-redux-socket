@@ -10,10 +10,24 @@ module.exports = function(io, ...handlers) {
       if(!action.socket_meta) { action.socket_meta = {} }
 
       const extraArgs = { dispatch, broadcast, socket, io }
-      handlers.every(h => {
-        const res = h(action, extraArgs)
-        return res !== false
-      })
+
+      const handle_at = i => {
+        if(i >= handlers.length) { return }
+
+        const h = handlers[i]
+        const hres = h(action, extraArgs)
+
+        if(hres && (hres.constructor === Promise)) {
+          hres.then(res => {
+            if(res === false) { return }
+            return handle_at(i+1)
+          })
+        } else {
+          return handle_at(i+1)
+        }
+      }
+
+      handle_at(0)
     }
 
     const system_message = true

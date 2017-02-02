@@ -18,7 +18,7 @@ const defaultHandlers = require('react-redux-socket/server/handlers/')
 
 ioActionHandler(
   io,
-  defaultHandlers.authenticate(socketAuth.serverAuthenticate).log(log),
+  defaultHandlers.authenticate(socketAuth.promiseServerAuthenticate).log(log),
   defaultHandlers.joinRoom(socketAuth.serverRoomName).log(log),
   defaultHandlers.logConnection(log),
   include('handlers/messages').log(log))
