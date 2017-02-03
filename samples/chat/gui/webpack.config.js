@@ -34,7 +34,7 @@ module.exports = {
       },
       {
         test: /semantic-ui-css\/.*\.(woff|woff2|eot|png|ttf|svg)$/,
-        loader: "file-loader"
+        loader: 'url-loader?limit=100000'
       }
     ]
   }
