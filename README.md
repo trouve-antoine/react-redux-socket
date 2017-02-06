@@ -303,16 +303,21 @@ ioActionHandler(
   include('handlers/messages').log(log))
 ```
 
-### Action format
+### Action format and Error Actions
 
 I advise to use the following members for actions objects:
 
 - `payload`: redux action's content
 - `meta`: redux action's metatdata
 - `socket_meta`: metadata for the socket server
+- `error`: true if the action is an error
 
 Those are created (as empty objects) at server-side if they do not exist.
 Yet, you are free to use other other format: this won't cause any trouble.
+
+If the `payload` is an instance of `Error`, the action is considered to be an error.
+Such actions between the client and the server are serialized / de-serialized.
+In this case the fields `error` and `socket_meta.error` of the action are forced to true.
 
 ## Hacking facts and reserved keywords
 

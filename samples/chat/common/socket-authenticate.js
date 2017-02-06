@@ -26,6 +26,11 @@ function promiseServerAuthenticate(action, args) {
     /* system message: no authentication */
     if(action.socket_meta.system_message) { return resolve(true) }
 
+    if(action.payload instanceof Error) {
+      console.error("Got an error from the client: ", action.payload)
+      return resolve(true)
+    }
+
     console.log("action to check authentication", action)
 
     if(!action.socket_meta.user) { return resolve(false) }
@@ -37,7 +42,11 @@ function promiseServerAuthenticate(action, args) {
 
 function logAuthenticationErrorEvents(action, getState, socketDispatch) {
   if(action.type === 'AUTHENTICATION_ERROR') {
-    console.error("The authentication failed")
+    console.error("The authentication failed", action)
+    socketDispatch({
+      type: "TEST_CLIENT_TO_SERVER_ERROR",
+      payload: new Error("Happy")
+    })
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "react-redux-socket",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Lightweight library to handle redux actions at server side using sockets",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,8 +15,9 @@
     "url": "https://github.com/trouve-antoine/react-redux-socket.git"
   },
   "dependencies": {
-    "socket.io-client": "^1.7.2",
-    "socket.io": "^1.7.2"
+    "serializerr": "^1.0.3",
+    "socket.io": "^1.7.2",
+    "socket.io-client": "^1.7.2"
   },
   "author": "Antoine Trouvé",
   "license": "MIT"

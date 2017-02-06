@@ -23,7 +23,8 @@ const store = createStore(
       ReactActionSocketMiddleware("ws://localhost:3000/app1")
         .plugins(clientAuthenticationPlugin)
         .translators_in(addPrefixToMessage("🐮"))
-        .onInit(initMessagesAtConnection))
+        .onInit(initMessagesAtConnection)
+        .log(console.warn))
   )
 
 /********* Initialization event */

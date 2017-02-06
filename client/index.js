@@ -16,6 +16,32 @@ const MakeReactActionSocketMiddleware = (url) => {
 
   let log = undefined
 
+  const convertBackErrorActionFromServer = action => {
+    if(action.error && action.socket_meta && action.socket_meta.error) {
+      /* converts back error actions */
+      try {
+        action.payload = Object.assign(new Error(), action.payload)
+        if(log) { log("The action has been converted to an error action: ", action) }
+      } catch(e) { if(log) { log("Unable to convert back the action error", e) } }
+    }
+    return action
+  }
+
+  const convertErrorIfAny = action => {
+    const serializerr = require('serializerr')
+
+    if(action.payload instanceof Error) {
+      try {
+        action.payload = serializerr(action.payload)
+        action.error = true
+        if(!action.socket_meta) { action.socket_meta = {} }
+        action.socket_meta.error = true
+        if(log) { log("Converted action to error action: ", action) }
+      } catch(e) { log("Unable to convert the error action", err) }
+    }
+    return action
+  }
+
   const translators_in = []
   const translators_out = []
   const handlers = []
@@ -56,11 +82,14 @@ const MakeReactActionSocketMiddleware = (url) => {
       if(log) { log("Send action to server: ", action) }
       socket.emit(
         'react redux action',
-        mp.translate_out(action, getState, /* hack */ dispatch, socketDispatch))
+        convertErrorIfAny(mp.translate_out(action, getState, /* hack */ dispatch, socketDispatch)))
     }
 
     socket.on('react redux action server', action => {
       if(log) { log("Got action from server: ", action) }
+
+      action = convertBackErrorActionFromServer(action)
+
       if(mp.handle(action, getState, convertAndSocketDispatch, /* hack */ dispatch)) {
         dispatch(mp.translate_in(action, getState, /* hack */ dispatch, socketDispatch))
       } else if(log) {
