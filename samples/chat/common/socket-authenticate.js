@@ -20,7 +20,7 @@ function serverRoomName(action, args) {
 }
 
 /* server: check user and password */
-/* try to use promise */
+/* uses a promise */
 function promiseServerAuthenticate(action, args) {
   return new Promise( (resolve, reject) => {
     /* system message: no authentication */
@@ -35,8 +35,19 @@ function promiseServerAuthenticate(action, args) {
   })
 }
 
+function logAuthenticationErrorEvents(action, getState, socketDispatch) {
+  if(action.type === 'AUTHENTICATION_ERROR') {
+    console.error("The authentication failed")
+  }
+}
+
+function clientAuthenticationPlugin(m) {
+  m.translators_out(clientActionTranslator)
+  m.handlers(logAuthenticationErrorEvents)
+}
+
 module.exports = {
-  clientActionTranslator,
+  clientAuthenticationPlugin,
   serverRoomName,
   promiseServerAuthenticate
 }

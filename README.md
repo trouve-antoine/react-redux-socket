@@ -122,6 +122,11 @@ Translators are executed in the order specified at initialization, with side eff
 That is, `translator2` and `translator3` will be able to access `socket_meta.user` as specified by `clientActionTranslator`.
 
 Translators are only called on actions from the client to the server, before sending to the server.
+They are called with the following parameters:
+
+- `action`: the action as returned by the previous translator
+- `getState`: the redux function to access the application's state
+
 
 ### Client-side initialization hooks
 
@@ -130,9 +135,9 @@ For instance, this one sends a `GET_STATE` message to the server:
 
 ```
 function getStateAtConnection(socketDispatch, getState, socket) {
-  socketDispatch(MakeSocketAction({
+  socketDispatch({
     type: "GET_STATE"
-  }))
+  })
 }
 ```
 
@@ -150,6 +155,55 @@ ReactReduxSocketMiddleware("ws://localhost:3000/app1")
    .onInit(getStateAtConnection, hook2, hook3)
    .translators(clientActionTranslator, translator2, translator3)
 ```
+
+Initialization hooks are called with the following parameters:
+
+- `dispatch`: the function that sends an action to the server. The call to `MakeSocketAction` is not necessary
+- `getState`: the redux function to access the application's state
+- `socket`: the socket object (from socket.io)
+
+### Client-side action handlers
+
+Action handlers are to trigger some extra server action upon the reception of a message from the server, *before* translation.
+They are called with the following parameters:
+
+- `action`: the action received from the server
+- `getState`: the redux function to access the application's state
+- `socketDispatch`: the function that sends an action to the server. The call to `MakeSocketAction` is not necessary
+
+Handler functions can return `false` in order to prevent the action to be passed to further handlers, in translators and reducers. Any other output is ignored.
+
+They are registers with the function `handlers` as follows:
+
+```
+ReactReduxSocketMiddleware("ws://localhost:3000/app1")
+  .handlers(handle1, handle2)
+```
+
+They are executed in order.
+
+### Server-side plugins
+
+The `plugins` function allows libraries to add the translators and handlers at once.
+Plugin functions take into input the middleware object and do not return anything:
+
+```
+function myPlugin(middleware) {
+  middleware.translators(t1, t1)
+  middleware.onInt(init_function)
+  middleware.handlers(h1, h2, h3)
+}
+```
+
+They are registers with the `plugins` function:
+
+```
+ReactReduxSocketMiddleware("ws://localhost:3000/app1")
+  .plugins(plugin1, plugin2)
+```
+
+Plugins functions are executed in order.
+
 
 ### Server-side handlers
 
