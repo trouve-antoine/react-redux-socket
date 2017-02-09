@@ -70,6 +70,11 @@ const reactReduxSocketServer = function(io, ...handlers) {
     })
 
     socket.on('react redux action', function(action) {
+      if(action.socket_meta.system_message) {
+        console.error("The incomming action is trying to send a system message: " + JSON.stringify(action))
+        console.error("The socket object is", socket)
+        return
+      }
       handle(action)
     })
   });
@@ -84,6 +89,11 @@ const reactReduxSocketServer = function(io, ...handlers) {
     plugins.forEach( p => p(self) )
     return self
   }
+  /******* New convenient functions (1.7.1) */
+  self.isSystemAction = action => {
+    return action.socket_meta.system_message === true
+  }
+
   return self
 }
 

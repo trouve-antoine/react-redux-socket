@@ -93,7 +93,7 @@ const MakeReactActionSocketMiddleware = (url) => {
       if(mp.handle(action, getState, convertAndSocketDispatch, /* hack */ dispatch)) {
         dispatch(mp.translate_in(action, getState, /* hack */ dispatch, socketDispatch))
       } else if(log) {
-        log("The action has been canceled out by the handles: ", action)
+        log("The action has been canceled out by the handlers: ", action)
       }
     })
 
