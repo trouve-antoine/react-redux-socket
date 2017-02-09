@@ -1,4 +1,4 @@
-module.exports = function(io, ...handlers) {
+const reactReduxSocketServer = function(io, ...handlers) {
   const broadcast = (action) => io.emit('react redux action server', action)
 
   io.on('connection', function(socket){
@@ -47,4 +47,18 @@ module.exports = function(io, ...handlers) {
       handle(action)
     })
   });
+
+  /******* New convenient functions (1.6.0) */
+  const self = reactReduxSocketServer
+  self.handler = (...otherHandlers) => {
+    otherHandlers.forEach(h => handlers.push(h))
+    return self
+  }
+  self.plugin => (plugin) =>
+    plugin(self)
+    return self
+  }
+  return self
 }
+
+module.exports = reactReduxSocketServer
