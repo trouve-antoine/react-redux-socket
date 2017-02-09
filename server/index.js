@@ -49,6 +49,7 @@ const reactReduxSocketServer = function(io, ...handlers) {
             return handle_at(i+1)
           })
         } else {
+          if(hres === false) { return }
           return handle_at(i+1)
         }
       }
