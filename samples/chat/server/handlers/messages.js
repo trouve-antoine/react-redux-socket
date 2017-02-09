@@ -1,7 +1,14 @@
 const messages = []
 let log = undefined
 
+const { isSystemAction } = require('react-redux-socket/server')
+
 const handleMessageActions = function(action, { dispatch, broadcast }){
+  if(isSystemAction(action)) {
+    console.log("Got system action", action)
+    return
+  }
+
   switch(action.type) {
     case 'GET_ALL_MESSAGES': {
       dispatch({

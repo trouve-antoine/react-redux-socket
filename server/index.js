@@ -89,12 +89,13 @@ const reactReduxSocketServer = function(io, ...handlers) {
     plugins.forEach( p => p(self) )
     return self
   }
-  /******* New convenient functions (1.7.1) */
-  self.isSystemAction = action => {
-    return action.socket_meta.system_message === true
-  }
 
   return self
+}
+
+/******* New convenient functions (1.7.1) */
+reactReduxSocketServer.isSystemAction = action => {
+  return action.socket_meta.system_message === true
 }
 
 module.exports = reactReduxSocketServer
