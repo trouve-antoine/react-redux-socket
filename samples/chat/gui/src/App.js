@@ -10,7 +10,7 @@ import { createStore, applyMiddleware } from 'redux'
 import Thunk from 'redux-thunk'
 import RootReducer from 'redux-state'
 import { ReactActionSocketMiddleware } from 'react-redux-socket/client'
-import { clientActionTranslator } from '@common/socket-authenticate'
+import { clientAuthenticationPlugin } from '@common/socket-authenticate'
 
 import { Segment } from 'semantic-ui-react'
 
@@ -21,9 +21,10 @@ const store = createStore(
     applyMiddleware(
       Thunk,
       ReactActionSocketMiddleware("ws://localhost:3000/app1")
-        .translators_out(clientActionTranslator)
+        .plugins(clientAuthenticationPlugin)
         .translators_in(addPrefixToMessage("🐮"))
-        .onInit(initMessagesAtConnection))
+        .onInit(initMessagesAtConnection)
+        .log(console.warn))
   )
 
 /********* Initialization event */

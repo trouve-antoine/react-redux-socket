@@ -1,6 +1,7 @@
 const refuseCredentials = (args) => {
   args.dispatch({
-    type: "AUTHENTICATION_ERROR"
+    type: "AUTHENTICATION_ERROR",
+    payload: new Error("Wrong credentials")
   })
   return false
 }

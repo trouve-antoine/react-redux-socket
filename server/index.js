@@ -1,13 +1,39 @@
+
+const convertErrorIfAny = action => {
+  const serializerr = require('serializerr')
+
+  if(action.payload instanceof Error) {
+    action.payload = serializerr(action.payload)
+    action.error = true
+    if(!action.socket_meta) { action.socket_meta = {} }
+    action.socket_meta.error = true
+  }
+  return action
+}
+
+const convertBackErrorActionFromClient = action => {
+  if(action.error && action.socket_meta && action.socket_meta.error) {
+    /* converts back error actions */
+    try {
+      action.payload = Object.assign(new Error(), action.payload)
+    } catch(e) { console.warn("Unable to convert back the error action", action) }
+  }
+  return action
+}
+
+
 const reactReduxSocketServer = function(io, ...handlers) {
-  const broadcast = (action) => io.emit('react redux action server', action)
+  const broadcast = (action) => io.emit('react redux action server', convertErrorIfAny(action))
 
   io.on('connection', function(socket){
-    const dispatch = (action) => socket.emit('react redux action server', action)
+    const dispatch = (action) => socket.emit('react redux action server', convertErrorIfAny(action))
 
     const handle = (action) => {
       if(!action.meta) { action.meta = {} }
       if(!action.payload) { action.payload = {} }
       if(!action.socket_meta) { action.socket_meta = {} }
+
+      action = convertBackErrorActionFromClient(action)
 
       const extraArgs = { dispatch, broadcast, socket, io }
 
