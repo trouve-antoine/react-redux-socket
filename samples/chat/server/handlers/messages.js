@@ -1,7 +1,7 @@
 const messages = []
 let log = undefined
 
-module.exports = function(action, { dispatch, broadcast }){
+const handleMessageActions = function(action, { dispatch, broadcast }){
   switch(action.type) {
     case 'GET_ALL_MESSAGES': {
       dispatch({
@@ -20,6 +20,10 @@ module.exports = function(action, { dispatch, broadcast }){
       break;
     }
   }
+}
+
+module.exports = function(reactReduxSocketServer) {
+  reactReduxSocketServer.handlers(handleMessageActions)
 }
 
 module.exports.log = _log => { log = _log; return module.exports }

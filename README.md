@@ -79,7 +79,7 @@ const myHandler = function(action, { dispatch, broadcast }){
   }
 }
 
-ioActionHandler(io, myHandler)
+ioActionHandler(io).handlers(myHandler) // or ioActionHandler(io, myHandler)
 
 http.listen(3000, function(){
   log('listening on *:3000');
@@ -182,7 +182,7 @@ ReactReduxSocketMiddleware("ws://localhost:3000/app1")
 
 They are executed in order.
 
-### Server-side plugins
+### Client-side plugins
 
 The `plugins` function allows libraries to add the translators and handlers at once.
 Plugin functions take into input the middleware object and do not return anything:
@@ -204,7 +204,6 @@ ReactReduxSocketMiddleware("ws://localhost:3000/app1")
 
 Plugins functions are executed in order.
 
-
 ### Server-side handlers
 
 Handlers are called with the following parameters:
@@ -222,6 +221,14 @@ Handlers are executed in the order specified at creation:
 ```
 const ioActionHandler = require('react-redux-socket/server')
 ioActionHandler(io, handler1, handler2, handler3)
+```
+or
+
+```
+const ioActionHandler = require('react-redux-socket/server')
+ioActionHandler(io)
+  .handlers(handler1, handler2)
+  .handlers(handler3)
 ```
 
 In order to prevent the following handlers to be executed, a given handler should return false:
@@ -301,6 +308,20 @@ ioActionHandler(
   defaultHandlers.joinRoom(socketAuth.serverRoomName).log(log),
   defaultHandlers.logConnection(log),
   include('handlers/messages').log(log))
+```
+
+### Sever-side plugins
+
+The server function supports the convenient plugins function that allows modules to register as many handlers are necessary without exposing them:
+
+```
+const registerHandlers = (ioActionHandler) => {
+  ioActionHandler
+    .handlers(privateHandler1, privateHandler2)
+    .handlers(privateHandler3)
+}
+
+ioActionHandler(io).plugins(registerHandlers)
 ```
 
 ### Action format and Error Actions

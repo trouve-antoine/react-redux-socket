@@ -76,12 +76,12 @@ const reactReduxSocketServer = function(io, ...handlers) {
 
   /******* New convenient functions (1.6.0) */
   const self = reactReduxSocketServer
-  self.handler = (...otherHandlers) => {
+  self.handlers = (...otherHandlers) => {
     otherHandlers.forEach(h => handlers.push(h))
     return self
   }
-  self.plugin => (plugin) =>
-    plugin(self)
+  self.plugins = (...plugins) => {
+    plugins.forEach( p => p(self) )
     return self
   }
   return self
