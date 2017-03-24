@@ -22,7 +22,7 @@ const store = createStore(
       Thunk,
       ReactActionSocketMiddleware("ws://localhost:3000/app1")
         .plugins(clientAuthenticationPlugin)
-        .translators_in(addPrefixToMessage("🐮"))
+        .onActionIn(addPrefixToMessage("🐮"))
         .onInit(initMessagesAtConnection)
         .log(console.warn))
   )

@@ -8,26 +8,21 @@ export const sendMessage = (message) => {
   })
 }
 
-export const initMessagesAtConnection = (socketDispatch, getState, socket) => {
+export const initMessagesAtConnection = ({socketDispatch, getState, socket}, next) => {
   socketDispatch(MakeSocketAction({
     type: "GET_ALL_MESSAGES"
   }))
+  next()
 }
 
-export const addPrefixToMessage = (prefix) => (action, getState) => {
-  switch(action.type) {
-  case 'APPEND_MESSAGE':
+export const addPrefixToMessage = (prefix) => (action, {getState}, next) => {
+  if(action.type === 'APPEND_MESSAGE') {
     const prefix_id = getState().incommingMessagesPrefixId
     const prefix_text = allPrefixes.get(prefix_id)
-    return {
-      type: 'APPEND_MESSAGE',
-      payload: {
-        message: prefix_text + action.payload.message
-      }
-    }
-  default:
-    return action
+
+    action.payload.message = prefix_text + action.payload.message
   }
+  next()
 }
 
 export default function(oldState=[], action) {

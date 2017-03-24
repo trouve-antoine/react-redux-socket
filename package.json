@@ -15,7 +15,6 @@
     "url": "https://github.com/trouve-antoine/react-redux-socket.git"
   },
   "dependencies": {
-    "moniker": "^0.1.2",
     "serializerr": "^1.0.3",
     "socket.io": "^1.7.2",
     "socket.io-client": "^1.7.2"

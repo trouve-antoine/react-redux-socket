@@ -1,18 +1,20 @@
 const refuseCredentials = (args) => {
-  args.dispatch({
+  args.socketDispatch({
     type: "AUTHENTICATION_ERROR",
     payload: new Error("Wrong credentials")
   })
-  return false
 }
 
-
 module.exports = (promiseCheckCredentials) => {
-  const handler = (action, args) => {
-    return promiseCheckCredentials(action, args)
+  const handler = (action, args, next) => {
+    const { isSystemAction } = require('..')
+    
+    if( isSystemAction(action) ) { return next() }
+
+    promiseCheckCredentials(action, args)
       .then(areCredentialsCorrect => {
         if(!areCredentialsCorrect) { return refuseCredentials(args) }
-        return true
+        next()
       })
   }
 

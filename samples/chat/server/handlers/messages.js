@@ -3,15 +3,15 @@ let log = undefined
 
 const { isSystemAction } = require('react-redux-socket/server')
 
-const handleMessageActions = function(action, { dispatch, broadcast }){
+const handleMessageActions = function(action, { socketDispatch, broadcast }, next){
   if(isSystemAction(action)) {
     console.log("Got system action", action)
-    return
+    return next()
   }
 
   switch(action.type) {
     case 'GET_ALL_MESSAGES': {
-      dispatch({
+      socketDispatch({
         type: 'SET_MESSAGES',
         payload: { messages }
       })
@@ -27,10 +27,12 @@ const handleMessageActions = function(action, { dispatch, broadcast }){
       break;
     }
   }
+
+  next()
 }
 
 module.exports = function(reactReduxSocketServer) {
-  reactReduxSocketServer.handlers(handleMessageActions)
+  reactReduxSocketServer.onActionIn(handleMessageActions)
 }
 
 module.exports.log = _log => { log = _log; return module.exports }

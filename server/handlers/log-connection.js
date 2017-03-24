@@ -1,6 +1,6 @@
 module.exports = _log => {
   let log = _log
-  const handler = function(action, { emit, broadcast, socket, io }) {
+  const handler = function(action, { socket }, next) {
 
     switch(action.type) {
       case 'SOCKET_CONNECTED': {
@@ -12,6 +12,8 @@ module.exports = _log => {
         break
       }
     }
+
+    next()
   }
 
   handler.log = _log => { log = _log; return handler }

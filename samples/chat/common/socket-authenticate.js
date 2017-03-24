@@ -3,18 +3,18 @@ function roomName(action) {
 }
 
 /* client action translator_out */
-function clientActionTranslator(action, getState) {
+function clientActionTranslator(action, { getState }, next) {
   const newAction = Object.assign({}, action)
 
   newAction.socket_meta.user = getState().credentials
 
   newAction.socket_meta.user.room = roomName(newAction)
 
-  return newAction
+  next()
 }
 
 /* server: get room name */
-function serverRoomName(action, args) {
+function serverRoomName(action) {
   if(action.socket_meta.system_message) { return }
   return action.socket_meta.user.room
 }
@@ -40,7 +40,7 @@ function promiseServerAuthenticate(action, args) {
   })
 }
 
-function logAuthenticationErrorEvents(action, getState, socketDispatch) {
+function logAuthenticationErrorEvents(action, {getState, socketDispatch}, next) {
   if(action.type === 'AUTHENTICATION_ERROR') {
     console.error("The authentication failed", action)
     socketDispatch({
@@ -48,11 +48,12 @@ function logAuthenticationErrorEvents(action, getState, socketDispatch) {
       payload: new Error("Happy")
     })
   }
+  next()
 }
 
 function clientAuthenticationPlugin(m) {
-  m.translators_out(clientActionTranslator)
-  m.handlers(logAuthenticationErrorEvents)
+  m.onActionOut(clientActionTranslator)
+  m.onActionOut(logAuthenticationErrorEvents)
 }
 
 module.exports = {

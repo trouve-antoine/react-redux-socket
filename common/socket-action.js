@@ -2,7 +2,7 @@ const cutils = require('./utils')
 
 const SocketAction = function(action, rrsName) {
   Object.assign(this, action)
-  
+
   if(!this.payload) { this.payload  = { } }
   if(!this.meta) { this.meta = { } }
   if(!this.socket_meta) { this.socket_meta = { } }
@@ -18,4 +18,8 @@ const MakeSocketAction = function(action, rrsName) {
   return new SocketAction(action, name)
 }
 
-module.exports = MakeSocketAction
+const IsSocketAction = function(action) {
+  return action instanceof SocketAction
+}
+
+module.exports = { MakeSocketAction, IsSocketAction }

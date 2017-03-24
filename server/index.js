@@ -1,102 +1,69 @@
+const defaultHandlers = require('../common/handlers')
+const MakeBasicMiddleware = require('../common/handler-basic-logic')
 
-const convertErrorIfAny = action => {
-  const serializerr = require('serializerr')
+const defaultHandlers_in = [
+  defaultHandlers.handleDeserializeErrorAction,
+  defaultHandlers.ensureActionStructure
+] /* always executed before handlers in */
 
-  if(action.payload instanceof Error) {
-    action.payload = serializerr(action.payload)
-    action.error = true
-    if(!action.socket_meta) { action.socket_meta = {} }
-    action.socket_meta.error = true
-  }
-  return action
-}
+const defaultHandlers_out = [
+  defaultHandlers.ensureActionStructure,
+  defaultHandlers.handleSerializeErrorAction
+] /* always executed after handlers out */
 
-const convertBackErrorActionFromClient = action => {
-  if(action.error && action.socket_meta && action.socket_meta.error) {
-    /* converts back error actions */
-    try {
-      action.payload = Object.assign(new Error(), action.payload)
-    } catch(e) { console.warn("Unable to convert back the error action", action) }
-  }
-  return action
-}
-
-
-const reactReduxSocketServer = function(io, ...handlers) {
-  const broadcast = (action) => io.emit('react redux action server', convertErrorIfAny(action))
-
+const reactReduxSocketServer = function(io) {
   io.on('connection', function(socket){
-    const dispatch = (action) => socket.emit('react redux action server', convertErrorIfAny(action))
-
-    const handle = (action) => {
-      if(!action.meta) { action.meta = {} }
-      if(!action.payload) { action.payload = {} }
-      if(!action.socket_meta) { action.socket_meta = {} }
-
-      action = convertBackErrorActionFromClient(action)
-
-      const extraArgs = { dispatch, broadcast, socket, io }
-
-      const handle_at = i => {
-        if(i >= handlers.length) { return }
-
-        const h = handlers[i]
-        const hres = h(action, extraArgs)
-
-        if(hres && (hres.constructor === Promise)) {
-          hres.then(res => {
-            if(res === false) { return }
-            return handle_at(i+1)
-          })
-        } else {
-          if(hres === false) { return }
-          return handle_at(i+1)
-        }
-      }
-
-      handle_at(0)
+    const socketDispatch = function(action) {
+      mp.handle_out(action, socketEnv, function(action) {
+        socket.emit('react redux action server', action)
+      })
     }
 
-    const system_message = true
-    handle({ type: 'SOCKET_CONNECTED', socket_meta: { system_message } })
+    const dispatch = function(action) {
+      const socketEnvWithAction = Object.assign({ action_in: action }, socketEnv)
+      mp.handle_in(action, socketEnvWithAction, function(action) {
+        /* nothing to do */
+      })
+    }
+
+    const broadcast = function(action) {
+      mp.handle_out(action, socketEnv, function(action) {
+        io.emit('react redux action server', action)
+      })
+    }
+
+    const socketEnv =  { socket, io, socketDispatch, broadcast, dispatch }
+
+    dispatch({ type: 'SOCKET_CONNECTED', socket_meta: { system_action : true } })
     socket.emit('react redux connected')
 
     socket.on('reconnect', function() {
-      handle({ type: 'SOCKET_CONNECTED', socket_meta: { system_message } })
+      dispatch({ type: 'SOCKET_CONNECTED', socket_meta: { system_action : true } })
       socket.emit('react redux connected')
     })
 
     socket.on('disconnect', function() {
-      handle({ type: 'SOCKET_DISCONNECTED', socket_meta: { system_message } })
+      dispatch({ type: 'SOCKET_DISCONNECTED', socket_meta: { system_action : true } })
     })
 
     socket.on('react redux action', function(action) {
-      if(action.socket_meta.system_message) {
+      if(action.socket_meta.system_action) {
         console.error("The incomming action is trying to send a system message: " + JSON.stringify(action))
-        console.error("The socket object is", socket)
+        console.error("The socket object is: ", socket)
         return
       }
-      handle(action)
+      dispatch(action)
     })
-  });
+  })
 
-  /******* New convenient functions (1.6.0) */
-  const self = reactReduxSocketServer
-  self.handlers = (...otherHandlers) => {
-    otherHandlers.forEach(h => handlers.push(h))
-    return self
-  }
-  self.plugins = (...plugins) => {
-    plugins.forEach( p => p(self) )
-    return self
-  }
+  const mp = MakeBasicMiddleware(reactReduxSocketServer)
 
-  return self
+  return reactReduxSocketServer
 }
 
 /******* New convenient functions (1.7.1) */
 reactReduxSocketServer.isSystemAction = action => {
-  return action.socket_meta.system_message === true
+  return action.socket_meta.system_action === true
 }
 
 module.exports = reactReduxSocketServer
