@@ -11,8 +11,8 @@ const MakeReactActionSocketMiddleware = (url, rrsName) => {
   const socket = io(url)
 
   const middleware = function({ dispatch, getState }) {
-    const socketDispatch = function(action) {
-      unsafeSocketDispatch( MakeSocketAction(action, rrsName) )
+    const socketDispatch = function(action, _rrsName) {
+      unsafeSocketDispatch( MakeSocketAction(action, _rrsName || rrsName) )
     }
 
     const socketEnv = { getState, socketDispatch, socket, dispatch }

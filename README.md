@@ -18,6 +18,8 @@ Check the source code to make you own !
 
 It uses socket.io by default, but I guess it could be ported to other socket libraries without much troubles (I'm a bit worried about connection and re-connection though).
 
+**Version 2 has been released. It is not compatible with verion 1.x**
+
 ## Client side (basic usage)
 
 Implemented as a small redux middleware:
@@ -36,6 +38,8 @@ const store = createStore(
 An action to the server can now be sent as usual using the `dispatch` function, but after calling `MakeSocketAction` as follows:
 
 ```
+import { MakeSocketAction } from 'react-redux-socket/client'
+
 dispatch( MakeSocketAction({
   type: "MY_ACTION_FROM_CLIENT_TO_SERVER"
 }) )
@@ -90,97 +94,70 @@ The actions from the server are handled at client side like normal redux actions
 
 ## Advanced usage
 
-### Client-side action translators (in, out)
+### Client-side action hanlers
 
-An action translator takes an action in input and output an action.
-For instance, this one adds the `user` field from the state inside all the actions that are bound the socket server:
+Action handlers replace the translators of version 1.x.
+
+An action handler is defined as follow:
 
 ```
-function clientActionTranslator(action, getState) {
-  const newAction = Object.assign({}, action)
+function handler(action, socketEnv, next) {
+  const { getState, socketDispatch, socket, dispatch } = socketEnv
 
-  newAction.socket_meta.user = getState().user
+  /* process action and socket env */
 
-  return newAction
+  next() /* executes the next action handler */
 }
 ```
 
-There are two types of transltors:
+The members of socketEnv are:
 
-- *in*: translate actions from the server before being dispatched
-- *out*: translate actions from the client to server before being sent
+- `getState`: the redux function that gives access to the redux state
+- `socketDispatch`: dispatch an action to the server (no need to call `MakeSocketAction`)
+- `socket`: the socket connection object
+- `dispatch`: the regular dispatch function (just in case)
 
-Translators are registered when creating the middleware:
+If you need to send arguments between handlers, we recommend you to add members to `socketEnv`.
+
+There are two types of action handlers:
+
+- *in*: called when an action is recieved from the server
+- *out*: called when an action is sent to the server
+
+Handlers are registered when creating the middleware:
 
 ```
 ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-  .translators_in(clientActionTranslator, translator2, translator3)
-  .translators_out(...otherTranslators)
+  .onActionIn(h1, h2)
+  .onActionIn(h3)
+  .onActionOut(h4, h5)
 ```
 
-Translators are executed in the order specified at initialization, with side effects.
-That is, `translator2` and `translator3` will be able to access `socket_meta.user` as specified by `clientActionTranslator`.
+Translators are executed in the order specified at initialization, with side effects:
 
-Translators are only called on actions from the client to the server, before sending to the server.
-They are called with the following parameters:
+- when an action from the server reaches the client `h1`, `h2` and `h3` are executed in this order (providing they call `next`)
+- when an action is sent to the server (using `dispatch(MakeSocketAction(...))` or `socketDispatch(...)`), `h4` and `h5` are executed in this order before the action to be actually sent (providing they call `next`)
 
-- `action`: the action as returned by the previous translator
-- `getState`: the redux function to access the application's state
-
-
-### Client-side initialization hooks
+### Client-side initialization handler
 
 It possible to execute some code each time the socket is being connected or re-connected.
 For instance, this one sends a `GET_STATE` message to the server:
 
 ```
-function getStateAtConnection(socketDispatch, getState, socket) {
+function getStateAtConnection(socketEnv, next) {
   socketDispatch({
     type: "GET_STATE"
   })
+  next() /* executes the next Initialization handler */
 }
 ```
 
-Initialization hooks are registered when creating the middleware:
+Initialization handlers are registered when creating the middleware:
 
 ```
 ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-   .onInit(getStateAtConnection)
+   .onConnect(getStateAtConnection)
 ```
-
-It is possible to use both `onInit` and `translators`, with as many parameters as needed:
-
-```
-ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-   .onInit(getStateAtConnection, hook2, hook3)
-   .translators(clientActionTranslator, translator2, translator3)
-```
-
-Initialization hooks are called with the following parameters:
-
-- `dispatch`: the function that sends an action to the server. The call to `MakeSocketAction` is not necessary
-- `getState`: the redux function to access the application's state
-- `socket`: the socket object (from socket.io)
-
-### Client-side action handlers
-
-Action handlers are to trigger some extra server action upon the reception of a message from the server, *before* translation.
-They are called with the following parameters:
-
-- `action`: the action received from the server
-- `getState`: the redux function to access the application's state
-- `socketDispatch`: the function that sends an action to the server. The call to `MakeSocketAction` is not necessary
-
-Handler functions can return `false` in order to prevent the action to be passed to further handlers, in translators and reducers. Any other output is ignored.
-
-They are registers with the function `handlers` as follows:
-
-```
-ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-  .handlers(handle1, handle2)
-```
-
-They are executed in order.
 
 ### Client-side plugins
 
@@ -189,9 +166,9 @@ Plugin functions take into input the middleware object and do not return anythin
 
 ```
 function myPlugin(middleware) {
-  middleware.translators(t1, t1)
-  middleware.onInt(init_function)
-  middleware.handlers(h1, h2, h3)
+  middleware.onConnect(init_function)
+  middleware.onActionIn(h1, h2, h3)
+  middleware.onActionOut(h4)
 }
 ```
 
@@ -199,59 +176,89 @@ They are registers with the `plugins` function:
 
 ```
 ReactReduxSocketMiddleware("ws://localhost:3000/app1")
-  .plugins(plugin1, plugin2)
+  .plugins(myPlugin, plugin2)
 ```
 
 Plugins functions are executed in order.
 
 ### Server-side handlers
 
-Handlers are called with the following parameters:
+Incommong and outgoing actions can be intercepted by handlers at server side too:
+
+```
+const ioActionHandler = require('react-redux-socket/server')
+ioActionHandler(io)
+  .onActionIn(h1, h2) /* action handlers (incomming) */
+  .onActionOut(h3)  /* action handlers (outgoing) */
+  .onDisconnect(hh1) /* non-action handlers (connected) */
+  .onConnect(hh2) /* non-action handlers (disconnected) */
+```
+
+Action handlers are called with the following parameters:
 
 - `action`: the action
-- `extraArgs`, an object that contains:
+- `socketEnv`, an object that contains:
 
   - `dispatch`: the function to dispatch an action to client
   - `broadcast`: the function to send an action to all clients of the same namespace (or room if one use the room handler)
   - `socket`: the socket object used to send the action
   - `io`: the global io object
+  - `localDispatch`: dispatch an action inside the server (goes through the `onActionIn` handlers)
 
-Handlers are executed in the order specified at creation:
+- `next`: the function to execute the next handler
+
+Handlers are executed in the order specified at creation.
+
+Non-action handlers are called with only `socketEnv` and `next`:
 
 ```
-const ioActionHandler = require('react-redux-socket/server')
-ioActionHandler(io, handler1, handler2, handler3)
+function actionHandler(action, socketEnv, next) {
+  const { socket, io, dispatch, broadcast, localDispatch } = socketEnv
+
+  next()
+}
+
+function nonActionHandler(socketEnv, next) {
+  const { socket, io, dispatch, broadcast, localDispatch } = socketEnv
+
+  next()
+}
 ```
-or
+
+Server-side handlers can also be registerd with the `plugins` function:
 
 ```
-const ioActionHandler = require('react-redux-socket/server')
+function myPlugin(m) {
+  m.onActionIn(h1, h2)
+  m.onActionOut(h3, h4)
+  m.onInit(hh1)
+  m.plugins(myOtherPlugin)
+}
+
 ioActionHandler(io)
-  .handlers(handler1, handler2)
-  .handlers(handler3)
+  .plugins(myPlugin)
 ```
 
-In order to prevent the following handlers to be executed, a given handler should return false:
+### Multiple client middlewares
+
+You can affect a name to your middleware instance in order to target it in `MakeSocketAction` as well as `socketDispatch`:
 
 ```
-const handler2 = function(action, { dispatch, broadcast }){
-  return false /* handler 3 won't be called */
+ReactReduxSocketMiddleware("ws://localhost:3000/app1", "m1")
+ReactReduxSocketMiddleware("ws://localhost:3000/app2", "m2")
+
+...
+
+dispatch( MakeSocketAction(action, "m1") ) /* goes only in middleware m1 */
+
+...
+
+function myHandler(action, { socketDispatch }, next) {
+  socketDispatch(action) /* dispathces to the same middleware as myHandler */
+  socketDispatch(action, "m2") /* forces the middleware */
 }
-```
-
-Handlers may have side-effects within `action` and `extraArgs`:
 
 ```
-const handler2 = function(action, args){
-  args.broadcast = function(action) {
-    throw new Error("You shall not broadcast")
-  }
-}
-```
-
-In this example, `handler1` will be able to use `broadcast`, but not `handler3`.
-
-Handlers may also return Promises since version 1.3 of the package.
 
 ### Sever-side built-in handlers
 
@@ -266,10 +273,8 @@ function checkUser(action, { dispatch, broadcast, socket, io }) {
 }
 
 const defaultHandlers = require('react-redux-socket/server/handlers/')
-ioActionHandler(
-  io,
-  defaultHandlers.authenticate(checkUser),
-  handler2)
+ioActionHandler(io)
+  .plugins(defaultHandlers.authenticate(checkUser))
 ```
 
 - `joinRoom`: make the socket join a single room. Change the scope of `broadcast` to this room (`handler2` broadcast function will be scoped to the room returned by `putInRoom`):
@@ -280,10 +285,8 @@ function putInRoom(action, { dispatch, broadcast, socket, io }) {
 }
 
 const defaultHandlers = require('react-redux-socket/server/handlers/')
-ioActionHandler(
-  io,
-  defaultHandlers.joinRoom(putInRoom),
-  handler2)
+ioActionHandler(io)
+  .plugins(defaultHandlers.joinRoom(putInRoom))
 ```
 
 - `logConnection`: logs connection and connections
@@ -291,9 +294,8 @@ ioActionHandler(
 ```
 const log = console.log
 const defaultHandlers = require('react-redux-socket/server/handlers/')
-ioActionHandler(
-  io,
-  defaultHandlers.logConnection(log))
+ioActionHandler(io)
+  .plugins(defaultHandlers.logConnection(log))
 ```
 
 It is possible to attach a logger function to `joinRoom` and `authenticate` using the chained `log` function:
@@ -302,26 +304,11 @@ It is possible to attach a logger function to `joinRoom` and `authenticate` usin
 const log = console.log
 const defaultHandlers = require('react-redux-socket/server/handlers/')
 
-ioActionHandler(
-  io,
-  defaultHandlers.authenticate(socketAuth.serverAuthenticate).log(log),
-  defaultHandlers.joinRoom(socketAuth.serverRoomName).log(log),
-  defaultHandlers.logConnection(log),
-  include('handlers/messages').log(log))
-```
-
-### Sever-side plugins
-
-The server function supports the convenient plugins function that allows modules to register as many handlers are necessary without exposing them:
-
-```
-const registerHandlers = (ioActionHandler) => {
-  ioActionHandler
-    .handlers(privateHandler1, privateHandler2)
-    .handlers(privateHandler3)
-}
-
-ioActionHandler(io).plugins(registerHandlers)
+ioActionHandler(io)
+  .plugins(
+    defaultHandlers.authenticate(socketAuth.serverAuthenticate).log(log))
+  .plugins(
+    defaultHandlers.joinRoom(socketAuth.serverRoomName).log(log))
 ```
 
 ### Action format and Error Actions
@@ -338,26 +325,7 @@ Yet, you are free to use other other format: this won't cause any trouble.
 
 If the `payload` is an instance of `Error`, the action is considered to be an error.
 Such actions between the client and the server are serialized / de-serialized.
-In this case the fields `error` and `socket_meta.error` of the action are forced to true.
-
-### Server-side system actions
-
-System actions are actions triggered from the server.
-They are sent generated by the library, and sent to the server's handlers.
-Such actions can be recognized because they have the member `socket_meta.system_message` set to `true`.
-They can be tested using this code (e.g. in server-side handlers):
-
-```
-const { isSystemAction } = require('react-redux-socket/server')
-
-function someHandler(action, { dispatch, broadcast, socket, io }) {
-  if( isSystemAction(action) ) { return /* ignores system actions */ }
-
-  /* do something with non-system actions */
-}
-```
-
-If a client tries to send an action with `socket_meta.system_message` set to true (or any other value that evaluates to true in JS), the action is ignored and an error is printed at server-side.
+In this case the field `error` of the action is forced to true.
 
 ## Hacking facts and reserved keywords
 
