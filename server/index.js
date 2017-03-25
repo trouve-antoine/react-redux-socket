@@ -13,13 +13,13 @@ const defaultHandlers_out = [
 
 const reactReduxSocketServer = function(io) {
   io.on('connection', function(socket){
-    const socketDispatch = function(action) {
+    const dispatch = function(action) {
       mp.handle_out(action, socketEnv, function(action) {
         socket.emit('react redux action server', action)
       })
     }
 
-    const dispatch = function(action) {
+    const localDispatch = function(action) {
       const socketEnvWithAction = Object.assign({ action_in: action }, socketEnv)
       mp.handle_in(action, socketEnvWithAction, function(action) {
         /* nothing to do */
@@ -32,7 +32,7 @@ const reactReduxSocketServer = function(io) {
       })
     }
 
-    const socketEnv =  { socket, io, socketDispatch, broadcast, dispatch }
+    const socketEnv =  { socket, io, dispatch, broadcast, localDispatch }
 
     mp.on_connect(socketEnv)
     socket.emit('react redux connected')
@@ -47,7 +47,7 @@ const reactReduxSocketServer = function(io) {
     })
 
     socket.on('react redux action', function(action) {
-      dispatch(action)
+      localDispatch(action)
     })
   })
 

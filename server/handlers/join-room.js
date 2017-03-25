@@ -46,8 +46,17 @@ module.exports = (getRoomName) => {
     next()
   }
 
-  let log = undefined;
-  handler.log = _log => { log = _log; return handler }
+  const plugin = function(m) {
+    m.onActionIn(handler)
+    m.onDisconnect(function({socket}, next){
+      /* TODO:  leave all rooms  */
+      // socket.leave(roomName)
+      next()
+    })
+  }
 
-  return handler
+  let log = undefined;
+  plugin.log = _log => { log = _log; return plugin }
+
+  return plugin
 }

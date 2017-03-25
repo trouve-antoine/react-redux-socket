@@ -1,5 +1,5 @@
 const refuseCredentials = (args) => {
-  args.socketDispatch({
+  args.dispatch({
     type: "AUTHENTICATION_ERROR",
     payload: new Error("Wrong credentials")
   })
@@ -14,8 +14,12 @@ module.exports = (promiseCheckCredentials) => {
       })
   }
 
-  let log = undefined;
-  handler.log = _log => { log = _log; return handler }
+  const plugin = function(m) {
+    m.onActionIn(handler)
+  }
 
-  return handler
+  let log = undefined;
+  plugin.log = _log => { log = _log; return plugin }
+
+  return plugin
 }

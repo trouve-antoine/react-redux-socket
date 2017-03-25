@@ -14,8 +14,7 @@ function clientActionTranslator(action, { getState }, next) {
 }
 
 /* server: get room name */
-function serverRoomName(action) {
-  if(action.socket_meta.system_message) { return }
+function serverRoomName(action, socketEnv) {
   return action.socket_meta.user.room
 }
 

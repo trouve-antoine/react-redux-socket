@@ -1,10 +1,10 @@
 const messages = []
 let log = undefined
 
-const handleMessageActions = function(action, { socketDispatch, broadcast }, next){
+const handleMessageActions = function(action, { dispatch, broadcast }, next){
   switch(action.type) {
     case 'GET_ALL_MESSAGES': {
-      socketDispatch({
+      dispatch({
         type: 'SET_MESSAGES',
         payload: { messages }
       })

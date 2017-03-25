@@ -5,8 +5,7 @@ const MakeBasicMiddleware = require('../common/handler-basic-logic')
 
 const MakeReactActionSocketMiddleware = (url, rrsName) => {
   cutils.assertNonEmptyString(url)
-  //if(rrsName === undefined) { rrsName = require('moniker').choose() }
-  if(rrsName === undefined) { rrsName = "toto" }
+  if(rrsName === undefined) { rrsName = cutils.randomString(6) }
   cutils.assertNonEmptyString(rrsName)
 
   const socket = io(url)
