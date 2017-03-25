@@ -34,24 +34,19 @@ const reactReduxSocketServer = function(io) {
 
     const socketEnv =  { socket, io, socketDispatch, broadcast, dispatch }
 
-    dispatch({ type: 'SOCKET_CONNECTED', socket_meta: { system_action : true } })
+    mp.on_connect(socketEnv)
     socket.emit('react redux connected')
 
     socket.on('reconnect', function() {
-      dispatch({ type: 'SOCKET_CONNECTED', socket_meta: { system_action : true } })
+      mp.on_connect(socketEnv)
       socket.emit('react redux connected')
     })
 
     socket.on('disconnect', function() {
-      dispatch({ type: 'SOCKET_DISCONNECTED', socket_meta: { system_action : true } })
+      mp.on_disconnect(socketEnv)
     })
 
     socket.on('react redux action', function(action) {
-      if(action.socket_meta.system_action) {
-        console.error("The incomming action is trying to send a system message: " + JSON.stringify(action))
-        console.error("The socket object is: ", socket)
-        return
-      }
       dispatch(action)
     })
   })
@@ -59,11 +54,6 @@ const reactReduxSocketServer = function(io) {
   const mp = MakeBasicMiddleware(reactReduxSocketServer)
 
   return reactReduxSocketServer
-}
-
-/******* New convenient functions (1.7.1) */
-reactReduxSocketServer.isSystemAction = action => {
-  return action.socket_meta.system_action === true
 }
 
 module.exports = reactReduxSocketServer

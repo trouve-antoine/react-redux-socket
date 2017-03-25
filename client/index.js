@@ -33,9 +33,11 @@ const MakeReactActionSocketMiddleware = (url, rrsName) => {
     })
 
     socket.on('react redux connected', () => {
-      mp.log("Got init message from server.")
-      mp.on_init(socketEnv)
+      mp.log("Got connect message from server.")
+      mp.on_connect(socketEnv)
     })
+
+    /* TODO: send disconnect message */
 
     return function(next) {
       return function(action) {

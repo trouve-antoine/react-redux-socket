@@ -1,22 +1,13 @@
-module.exports = _log => {
-  let log = _log
-  const handler = function(action, { socket }, next) {
+module.exports = function(log) {
+  return function(middleware) {
+    middleware.onConnect(function({ socket }, next) {
+      log && console.log('connected:', socket.id)
+      next()
+    })
 
-    switch(action.type) {
-      case 'SOCKET_CONNECTED': {
-        log && console.log('connected:', socket.id, "in room", action.socket_meta.room_name);
-        break
-      }
-      case 'SOCKET_DISCONNECTED': {
-        log && console.log('a user disconnected');
-        break
-      }
-    }
-
-    next()
+    middleware.onConnect(function({ socket }, next) {
+      log && console.log('a user disconnected: ', socket.id)
+      next()
+    })
   }
-
-  handler.log = _log => { log = _log; return handler }
-
-  return handler
 }

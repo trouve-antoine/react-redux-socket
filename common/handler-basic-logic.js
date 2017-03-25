@@ -17,7 +17,8 @@ const defaultHandlers_out = [
 module.exports = function(_middleware) {
   const handlers_in = []
   const handlers_out = []
-  const init_handlers = []
+  const connect_handlers = []
+  const disconnect_handlers = []
   let log = undefined
 
   const private_middleware = {
@@ -31,8 +32,11 @@ module.exports = function(_middleware) {
         handlers_out.concat(defaultHandlers_out, last),
         action, socketEnv)
     },
-    on_init: function(socketEnv) {
-      cutils.executeHandlerList(init_handlers, socketEnv)
+    on_connect: function(socketEnv) {
+      cutils.executeHandlerList(connect_handlers, socketEnv)
+    },
+    on_disconnect: function(socketEnv) {
+      cutils.executeHandlerList(disconnect_handlers, socketEnv)
     },
     log: function(...args) {
       if(log) { log(...args) }
@@ -53,9 +57,15 @@ module.exports = function(_middleware) {
     return _middleware
   }
 
-  middleware.onInit = function() {
+  middleware.onConnect = function() {
     const handlers = [].slice.call(arguments)
-    handlers.forEach( function(h) { init_handlers.push(h) } )
+    handlers.forEach( function(h) { connect_handlers.push(h) } )
+    return _middleware
+  }
+
+  middleware.onDisconnect = function() {
+    const handlers = [].slice.call(arguments)
+    handlers.forEach( function(h) { disconnect_handlers.push(h) } )
     return _middleware
   }
 

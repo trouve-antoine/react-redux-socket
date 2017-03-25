@@ -7,10 +7,6 @@ const refuseCredentials = (args) => {
 
 module.exports = (promiseCheckCredentials) => {
   const handler = (action, args, next) => {
-    const { isSystemAction } = require('..')
-    
-    if( isSystemAction(action) ) { return next() }
-
     promiseCheckCredentials(action, args)
       .then(areCredentialsCorrect => {
         if(!areCredentialsCorrect) { return refuseCredentials(args) }

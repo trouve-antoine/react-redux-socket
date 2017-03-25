@@ -6,10 +6,6 @@ const socketsIdsPerRoomName = new Map()
 
 module.exports = (getRoomName) => {
   const handler = (action, args, next) => {
-    const { isSystemAction } = require('..')
-
-    if( isSystemAction(action) ) { return next() }
-    
     const roomName = getRoomName(action, args)
     const allRooms = Object.keys(args.socket.adapter.rooms)
     if(!socketsIdsPerRoomName.get(roomName)) { socketsIdsPerRoomName.set(roomName, []) }
