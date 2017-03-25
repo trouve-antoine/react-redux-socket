@@ -3,10 +3,9 @@ const { MakeReactActionSocketMiddleware } = require('../client')
 const MakeReactlessActionSocketMiddleware = function(url, rrsName) {
   const reactMiddleware = MakeReactActionSocketMiddleware(url, name)
 
-  const reactDispatchHandler = reactMiddleware()
-  const dummyNextFunction = function() {}
-
-  reactMiddleware.dispatch = reactDispatchHandler(dummyNextFunction)
+  const f = function() { }
+  const reactDispatchHandler = reactMiddleware({ /* dispatch: f, getState: f */ })
+  reactMiddleware.dispatch = reactDispatchHandler(f)
 
   return reactMiddleware
 }
