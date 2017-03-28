@@ -1,11 +1,15 @@
-const { MakeReactActionSocketMiddleware } = require('../client')
+const { ReactActionSocketMiddleware } = require('../client')
+const { MakeSocketAction } = require('../common/socket-action')
 
-const MakeReactlessActionSocketMiddleware = function(url, rrsName) {
-  const reactMiddleware = MakeReactActionSocketMiddleware(url, name)
+const ReactlessActionSocketClient = function(url, rrsName) {
+  const reactMiddleware = ReactActionSocketMiddleware(url, rrsName)
 
-  const f = function() { }
-  const reactDispatchHandler = reactMiddleware({ /* dispatch: f, getState: f */ })
-  reactMiddleware.dispatch = reactDispatchHandler(f)
+  const reactDispatchHandler = reactMiddleware({})(() => {})
+
+  reactMiddleware.dispatch = action =>
+    reactDispatchHandler(MakeSocketAction(action))
 
   return reactMiddleware
 }
+
+module.exports = { ReactlessActionSocketClient }

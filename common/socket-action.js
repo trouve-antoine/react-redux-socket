@@ -15,7 +15,7 @@ const SocketAction = function(action, rrsName) {
 }
 
 const MakeSocketAction = function(action, rrsName) {
-  return new SocketAction(action, name)
+  return new SocketAction(action, rrsName)
 }
 
 const IsSocketAction = function(action) {
