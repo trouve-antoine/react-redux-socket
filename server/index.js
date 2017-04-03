@@ -11,49 +11,73 @@ const defaultHandlers_out = [
   defaultHandlers.handleSerializeErrorAction
 ] /* always executed after handlers out */
 
+const makeDispatchFunction = handle => (sockets=[], _socketEnv) => {
+  if(sockets === undefined) { sockets = [] }
+  if( !(sockets instanceof Array) ) { sockets = [ sockets ] }
+
+  return (action, socketEnvExtra={}) => {
+    const socketEnv = Object.assign({ from_action: action }, _socketEnv)
+    Object.assign(socketEnv, socketEnvExtra)
+
+    handle(action, socketEnv, function(action) {
+      sockets.forEach( socket => socket.emit('react redux action server', action) )
+    })
+  }
+}
+
 const reactReduxSocketServer = function(io) {
+  const mp = MakeBasicMiddleware(reactReduxSocketServer)
+
+  const makeLocalDispatchFunction = socketEnv => makeDispatchFunction(mp.handle_in)([ /* no socket */ ], socketEnv)
+  const makeDispatchOutFunction = makeDispatchFunction(mp.handle_out)
+  Object.assign(reactReduxSocketServer, { makeLocalDispatchFunction, makeDispatchOutFunction })
+
   io.on('connection', function(socket){
-    const dispatch = function(action) {
-      mp.handle_out(action, socketEnv, function(action) {
-        socket.emit('react redux action server', action)
-      })
-    }
+    const localDispatchForActionIn = makeLocalDispatchFunction({ socket, io })
 
-    const localDispatch = function(action) {
-      const socketEnvWithAction = Object.assign({ action_in: action }, socketEnv)
-      mp.handle_in(action, socketEnvWithAction, function(action) {
-        /* nothing to do */
-      })
-    }
+    const baseSocketEnv = populateSocketEnv({socket, io}) /* adds dispatch, broadcast and localDispatch */
 
-    const broadcast = function(action) {
-      mp.handle_out(action, socketEnv, function(action) {
-        io.emit('react redux action server', action)
-      })
-    }
-
-    const socketEnv =  { socket, io, dispatch, broadcast, localDispatch }
-
-    mp.on_connect(socketEnv)
+    mp.on_connect(baseSocketEnv)
     socket.emit('react redux connected')
 
     socket.on('reconnect', function() {
-      mp.on_connect(socketEnv)
+      mp.on_connect(baseSocketEnv)
       socket.emit('react redux connected')
     })
 
     socket.on('disconnect', function() {
-      mp.on_disconnect(socketEnv)
+      mp.on_disconnect(baseSocketEnv)
     })
 
-    socket.on('react redux action', function(action) {
-      localDispatch(action)
+    socket.on('react redux action', function(action_in) {
+      const widSocketEnv = populateSocketEnv({ socket, io }, { action_in })
+
+      localDispatchForActionIn(action_in, widSocketEnv)
     })
   })
 
-  const mp = MakeBasicMiddleware(reactReduxSocketServer)
+  /* - creates dispatch, broadcast and localDispatch
+   * - add them to _baseSocketEnv (after copy) and returns it
+   * - _baseSocketEnv is copied, merged with _baseSocketEnv and sent to dispatch, broadcast and localDispatch
+   */
+  const populateSocketEnv = (_baseSocketEnv, _extraSocketEnv) => {
+    const { socket, io } = _baseSocketEnv
+
+    baseSocketEnv = Object.assign({}, _baseSocketEnv)
+    extraSocketEnv = Object.assign({}, _extraSocketEnv)
+
+    const dispatch = makeDispatchOutFunction(socket, extraSocketEnv)
+    const broadcast = makeDispatchOutFunction(io, extraSocketEnv)
+    const localDispatch = makeLocalDispatchFunction(extraSocketEnv)
+
+    Object.assign(baseSocketEnv, { dispatch, broadcast, localDispatch })
+    Object.assign(extraSocketEnv, baseSocketEnv)
+
+    return baseSocketEnv
+  }
 
   return reactReduxSocketServer
 }
+
 
 module.exports = reactReduxSocketServer
