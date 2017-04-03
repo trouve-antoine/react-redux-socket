@@ -71,7 +71,7 @@ module.exports = function(_middleware) {
 
   middleware.plugins = function() {
     const plugins = [].slice.call(arguments)
-    plugins.forEach( function(plugin) { plugin(middleware) } )
+    plugins.forEach( function(plugin) { plugin(_middleware) } )
     return _middleware
   }
 
