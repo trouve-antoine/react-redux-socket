@@ -16,8 +16,7 @@ const makeDispatchFunction = handle => (sockets=[], _socketEnv) => {
   if( !(sockets instanceof Array) ) { sockets = [ sockets ] }
 
   return (action, socketEnvExtra={}) => {
-    const socketEnv = Object.assign({ from_action: action }, _socketEnv)
-    Object.assign(socketEnv, socketEnvExtra)
+    const socketEnv = Object.assign({ from_action: action }, _socketEnv, socketEnvExtra)
 
     handle(action, socketEnv, function(action) {
       sockets.forEach( socket => socket.emit('react redux action server', action) )
@@ -65,13 +64,15 @@ const reactReduxSocketServer = function(io) {
 
     baseSocketEnv = Object.assign({}, _baseSocketEnv)
     extraSocketEnv = Object.assign({}, _extraSocketEnv)
+    localSocketEnv = Object.assign({ isLocalAction: true }, _extraSocketEnv)
 
     const dispatch = makeDispatchOutFunction(socket, extraSocketEnv)
     const broadcast = makeDispatchOutFunction(io, extraSocketEnv)
-    const localDispatch = makeLocalDispatchFunction(extraSocketEnv)
+    const localDispatch = makeLocalDispatchFunction(localSocketEnv)
 
     Object.assign(baseSocketEnv, { dispatch, broadcast, localDispatch })
     Object.assign(extraSocketEnv, baseSocketEnv)
+    Object.assign(localDispatch, baseSocketEnv)
 
     return baseSocketEnv
   }
