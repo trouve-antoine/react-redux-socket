@@ -14,6 +14,12 @@ const ensureActionDefaultStructure = function(action) {
   }
 
   if(action.payload instanceof Error) { action.error = true }
+  
+  const authorizedActionMembers = ["type", "payload", "meta", "socket_meta", "error"]
+  Object.keys(action)
+    .filter( k => action.hasOwnProperty(k) )
+    .filter( k => authorizedActionMembers.indexOf(k)<0 )
+    .forEach( k => delete action[k] )
 
   return action
 }

@@ -18,7 +18,15 @@ Check the source code to make you own !
 
 It uses socket.io by default, but I guess it could be ported to other socket libraries without much troubles (I'm a bit worried about connection and re-connection though).
 
-**Version 2 has been released. It is not compatible with verion 1.x**
+## News
+
+**Breaking change in version 2.0.5:** action members other than type, meta, payload, socket_meta are deleted when sent through the wire (the cleansing is done in `common/action.js` function `ensureActionDefaultStructure`)
+
+**Version 2 has been released. It is not compatible with version 1.x**:
+- no translators anymore, only handlers in and out
+- handlers are registered with `onActionIn` and `onActionOut`
+- there is no system action anymore. If you need actions at connection use custom init handlers (with `onInit`)
+
 
 ## Client side (basic usage)
 
@@ -313,7 +321,7 @@ ioActionHandler(io)
 
 ### Action format and Error Actions
 
-I advise to use the following members for actions objects:
+Only the following members are supported in actions when sent through sockets:
 
 - `payload`: redux action's content
 - `meta`: redux action's metatdata
@@ -321,7 +329,7 @@ I advise to use the following members for actions objects:
 - `error`: true if the action is an error
 
 Those are created (as empty objects) at server-side if they do not exist.
-Yet, you are free to use other other format: this won't cause any trouble.
+Yet, you are free to use other other format **locally**: this won't cause any trouble (but they will be deleted before being sent).
 
 If the `payload` is an instance of `Error`, the action is considered to be an error.
 Such actions between the client and the server are serialized / de-serialized.
