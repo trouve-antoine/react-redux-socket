@@ -3,9 +3,11 @@ const { MakeSocketAction, IsSocketAction } = require('../common/socket-action')
 const cutils = require('../common/utils')
 const MakeBasicMiddleware = require('../common/handler-basic-logic')
 
+const NO_NAME = "NO_NAME"
+
 const MakeReactActionSocketMiddleware = (url, rrsName) => {
   cutils.assertNonEmptyString(url)
-  if(rrsName === undefined) { rrsName = cutils.randomString(6) }
+  if(rrsName === undefined) { rrsName = NO_NAME }
   cutils.assertNonEmptyString(rrsName)
 
   const socket = io(url)
@@ -18,6 +20,10 @@ const MakeReactActionSocketMiddleware = (url, rrsName) => {
     const socketEnv = { getState, socketDispatch, socket, dispatch }
 
     const unsafeSocketDispatch = function(action) {
+      const actionRrsName = (action.socket_meta && action.socket_meta.rrs_name) || NO_NAME
+      if(actionRrsName !== rrsName) {
+        return mp.log("Ignores action with different rrsName", action)
+      }
       mp.handle_out(action, socketEnv, function(action) {
         mp.log("Send action to server: ", action)
         socket.emit('react redux action', action)
@@ -41,12 +47,13 @@ const MakeReactActionSocketMiddleware = (url, rrsName) => {
     return function(next) {
       return function(action) {
         if( IsSocketAction(action) ) {
-          mp.log("Got socket action", action)
-          const actionRrsName = action.socket_meta && action.socket_meta.rrsName
-          if( !actionRrsName || (actionRrsName === rrsName) ) {
+          const actionRrsName = (action.socket_meta && action.socket_meta.rrs_name) || NO_NAME
+          if( actionRrsName === rrsName ) {
+            // mp.log("Sends socket action", action)
             return socketDispatch(action)
           } else {
             mp.log("Ignores the action because of rrsName (should be " + rrsName + ")", action)
+            return next(action)
           }
         } else {
           mp.log("Got non-socket action", action)
