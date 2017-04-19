@@ -56,7 +56,6 @@ const MakeReactActionSocketMiddleware = (url, rrsName) => {
             return next(action)
           }
         } else {
-          mp.log("Got non-socket action", action)
           return next(action)
         }
       }
