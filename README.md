@@ -20,6 +20,8 @@ It uses socket.io by default, but I guess it could be ported to other socket lib
 
 ## News
 
+**Important change in version 2.0.8:** it is now possible to give directly the socket.io-client object to the client constructor, instead of just the string of the url.
+
 **Breaking change in version 2.0.5:** action members other than type, meta, payload, socket_meta are deleted when sent through the wire (the cleansing is done in `common/action.js` function `ensureActionDefaultStructure`)
 
 **Version 2 has been released. It is not compatible with version 1.x**:
@@ -39,6 +41,20 @@ const store = createStore(
     RootReducer,
     applyMiddleware(
       ReactReduxSocketMiddleware("ws://localhost:3000/app1")
+    )
+  )
+```
+
+or
+
+```
+import { ReactReduxSocketMiddleware } from 'react-redux-socket/client'
+const io = require('socket.io-client')("ws://localhost:3000/app1")
+
+const store = createStore(
+    RootReducer,
+    applyMiddleware(
+      ReactReduxSocketMiddleware(io)
     )
   )
 ```

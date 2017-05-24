@@ -5,12 +5,18 @@ const MakeBasicMiddleware = require('../common/handler-basic-logic')
 
 const NO_NAME = "NO_NAME"
 
-const MakeReactActionSocketMiddleware = (url, rrsName) => {
-  cutils.assertNonEmptyString(url)
+const MakeReactActionSocketMiddleware = (urlOrIoObject, rrsName) => {
+  let socket;
+  if( typeof(urlOrIoObject) === 'string' ) {
+    const url = urlOrIoObject
+    cutils.assertNonEmptyString(url)
+    socket = io(url)
+  } else {
+    socket = urlOrIoObject
+  }
+
   if(rrsName === undefined) { rrsName = NO_NAME }
   cutils.assertNonEmptyString(rrsName)
-
-  const socket = io(url)
 
   const middleware = function({ dispatch, getState }) {
     const socketDispatch = function(action, _rrsName) {
