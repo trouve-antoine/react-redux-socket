@@ -1,16 +1,15 @@
-const io = require('socket.io-client')
 const { MakeSocketAction, IsSocketAction } = require('../common/socket-action')
 const cutils = require('../common/utils')
 const MakeBasicMiddleware = require('../common/handler-basic-logic')
 
 const NO_NAME = "NO_NAME"
 
-const MakeReactActionSocketMiddleware = (urlOrIoObject, rrsName) => {
+const MakeReactActionSocketMiddleware = function(urlOrIoObject, rrsName) {
   let socket;
   if( typeof(urlOrIoObject) === 'string' ) {
     const url = urlOrIoObject
     cutils.assertNonEmptyString(url)
-    socket = io(url)
+    socket = require('socket.io-client')(url)
   } else {
     socket = urlOrIoObject
   }
@@ -36,14 +35,14 @@ const MakeReactActionSocketMiddleware = (urlOrIoObject, rrsName) => {
       })
     }
 
-    socket.on('react redux action server', action => {
+    socket.on('react redux action server', function(action) {
       mp.log("Got action from server: ", action)
       mp.handle_in(action, socketEnv, function(action) {
         dispatch(action)
       })
     })
 
-    socket.on('react redux connected', () => {
+    socket.on('react redux connected', function() {
       mp.log("Got connect message from server.")
       mp.on_connect(socketEnv)
     })

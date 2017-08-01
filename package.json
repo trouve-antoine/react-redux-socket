@@ -1,6 +1,6 @@
 {
   "name": "react-redux-socket",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "Lightweight library to handle redux actions at server side using sockets",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
