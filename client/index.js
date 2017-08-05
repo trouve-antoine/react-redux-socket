@@ -57,7 +57,7 @@ const MakeReactActionSocketMiddleware = function(urlOrIoObject, rrsName) {
             // mp.log("Sends socket action", action)
             return socketDispatch(action)
           } else {
-            mp.log("Ignores the action because of rrsName (should be " + rrsName + ")", action)
+            // mp.log("Ignores the action because of rrsName (should be " + rrsName + ")", action)
             return next(action)
           }
         } else {
