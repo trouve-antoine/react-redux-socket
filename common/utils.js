@@ -18,7 +18,11 @@ const executeHandlerList = (handlers, ...handlerArgs) => {
 
     const nextHandler = handlers[i]
     if(nextHandler === undefined) { throw new Error("Undefined handler.") }
-    nextHandler(...handlerArgs, handlerLauncher(i+1))
+    try {
+      nextHandler(...handlerArgs, handlerLauncher(i+1))
+    } catch(err) {
+      console.error("Got an error in the handler: stop the execution", err)
+    }
   }
   handlerLauncher(0)()
 }
