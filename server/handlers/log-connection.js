@@ -10,8 +10,15 @@ module.exports = function(log) {
       next()
     })
 
-    middleware.onActionIn(function(action, { socket }, next) {
-      log && log('action of type ' + action.type + ' for ' + socket.id)
+    middleware.onActionIn(function(action, socketEnv, next) {
+      const { isLocalAction, socket } = socketEnv
+      
+      if(isLocalAction) {
+        log && log('action of type ' + action.type + ' for local')
+      } else {
+        log && log('action of type ' + action.type + ' for client ' + socket.id)
+      }
+      
       next()
     })
   }

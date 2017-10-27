@@ -20,6 +20,8 @@ It uses socket.io by default, but I guess it could be ported to other socket lib
 
 ## News
 
+**Version 2.2:** Adds `localDispatch` and `broadcast` in the server-side middleware object.
+
 **Important change in version 2.0.8:** it is now possible to give directly the socket.io-client object to the client constructor, instead of just the string of the url.
 
 **Breaking change in version 2.0.5:** action members other than type, meta, payload, socket_meta are deleted when sent through the wire (the cleansing is done in `common/action.js` function `ensureActionDefaultStructure`)
@@ -118,7 +120,7 @@ The actions from the server are handled at client side like normal redux actions
 
 ## Advanced usage
 
-### Client-side action hanlers
+### Client-side action handlers
 
 Action handlers replace the translators of version 1.x.
 
@@ -283,6 +285,21 @@ function myHandler(action, { socketDispatch }, next) {
 }
 
 ```
+
+### Server-side globally available dispatch function
+
+You can access to the `localDispatch` and `dispatch` functions from the server-side middleware object (from version 2.2).
+
+```
+const myIoActionHandler = require('react-redux-socket/server')(io)
+  .onActionIn(h1, h2) /* action handlers (incomming) */
+  
+myIoActionHandler.broadcast(action) /* send to all connected clients */
+myIoActionHandler.localDispatch(action) /* server-side handling */
+```
+
+In the case of a localDispatch, all the handlers are called the same as with a normal action coming from the client.
+However, `socketEnv` won't contain the `socket` object  and the `dispatch` function.
 
 ### Sever-side built-in handlers
 

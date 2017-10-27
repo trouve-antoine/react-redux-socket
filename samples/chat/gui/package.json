@@ -1,6 +1,6 @@
 {
   "name": "sample-chat-gui",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Sample chat application using react-redux-socket",
   "main": "index.js",
   "scripts": {
@@ -36,5 +36,9 @@
     "webpack": "^2.2.1",
     "webpack-dev-server": "^1.16.3",
     "react-redux-socket": "file:../../../"
+  },
+  "dependencies": {
+    "serializerr": "^1.0.3",
+    "socket.io-client": "^2.0.4"
   }
 }

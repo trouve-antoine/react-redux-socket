@@ -1,7 +1,9 @@
 const messages = []
 let log = undefined
 
-const handleMessageActions = function(action, { dispatch, broadcast }, next){
+const handleMessageActions = function(action, socketEnv, next) {
+  const { dispatch, broadcast } = socketEnv
+  
   switch(action.type) {
     case 'GET_ALL_MESSAGES': {
       dispatch({

@@ -5,27 +5,28 @@
 const socketsIdsPerRoomName = new Map()
 
 module.exports = (getRoomName) => {
-  const handler = (action, args, next) => {
-    const roomName = getRoomName(action, args)
-    const allRooms = Object.keys(args.socket.adapter.rooms)
+  const handler = (action, socketEnv, next) => {
+    if( socketEnv.isLocalAction ) { return next() /* this happens in case of localDispatch */ }
+    
+    const roomName = getRoomName(action, socketEnv)
+    const allRooms = Object.keys(socketEnv.socket.adapter.rooms)
     if(!socketsIdsPerRoomName.get(roomName)) { socketsIdsPerRoomName.set(roomName, []) }
 
-    log && log("[", args.socket.id ,"]", "rooms", allRooms, '-->', roomName, "for action", action.type)
+    log && log("[", socketEnv.socket.id ,"]", "rooms", allRooms, '-->', roomName, "for action", action.type)
 
     if(!roomName) { return next() }
 
-    // const isInRoomAlready = allRooms.indexOf(roomName) >= 0
-    const sid = args.socket.id
+    const sid = socketEnv.socket.id
     const isInRoomAlready = socketsIdsPerRoomName.get(roomName).indexOf(sid) >= 0
 
     allRooms
       .filter(r => !isInRoomAlready || (r !== roomName))
-      .forEach(r => { log && console.log("[", sid ,"]", "leave room", r); args.socket.leave(r) })
+      .forEach(r => { log && console.log("[", sid ,"]", "leave room", r); socketEnv.socket.leave(r) })
 
     if(!isInRoomAlready) {
-      args.socket = args.socket.join(roomName)
-      args.io = args.io.in(roomName)
-      args.broadcast = action => args.io.emit('react redux action', action)
+      socketEnv.socket = socketEnv.socket.join(roomName)
+      socketEnv.io = socketEnv.io.in(roomName)
+      socketEnv.broadcast = action => socketEnv.io.emit('react redux action', action)
 
       socketsIdsPerRoomName.get(roomName).push(sid)
       log && console.log("[", sid ,"]", "join room", roomName)
@@ -40,7 +41,7 @@ module.exports = (getRoomName) => {
 
     if(action.type === 'SOCKET_DISCONNECTED') {
       // Does not work with all browsers a anyway
-      // args.socket.leave(roomName)
+      // socketEnv.socket.leave(roomName)
     }
 
     next()
