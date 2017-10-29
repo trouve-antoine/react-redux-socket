@@ -43,14 +43,15 @@ const reactReduxSocketServer = function(io) {
     const baseSocketEnv = Object.assign({}, _baseSocketEnv)
     const extraSocketEnv = Object.assign({}, _extraSocketEnv)
     const localSocketEnv = Object.assign({ isLocalAction: true }, _extraSocketEnv)
+    
+    const nop = function() { console.warn("This dispatch function is not available") }
 
-    const dispatch = socket ? makeDispatchOutFunction(socket, extraSocketEnv) : function() {
-      console.warn("The dispatch function is not available (are you using a localDispatch ?)")
-    }
+    const dispatch = socket ? makeDispatchOutFunction(socket, extraSocketEnv) : nop
+    const localOutDispatch = socket ? nop : makeDispatchOutFunction(socket, extraSocketEnv)
     const broadcast = makeDispatchOutFunction(io, extraSocketEnv)
     const localDispatch = makeLocalDispatchFunction(localSocketEnv)
 
-    Object.assign(baseSocketEnv, { dispatch, broadcast, localDispatch })
+    Object.assign(baseSocketEnv, { dispatch, broadcast, localDispatch, localOutDispatch })
     Object.assign(extraSocketEnv, baseSocketEnv)
     Object.assign(localSocketEnv, baseSocketEnv)
     

@@ -20,6 +20,8 @@ It uses socket.io by default, but I guess it could be ported to other socket lib
 
 ## News
 
+**Version 2.2.1** Further adds `localDispatch`.
+
 **Version 2.2:** Adds `localDispatch` and `broadcast` in the server-side middleware object.
 
 **Important change in version 2.0.8:** it is now possible to give directly the socket.io-client object to the client constructor, instead of just the string of the url.
@@ -288,7 +290,7 @@ function myHandler(action, { socketDispatch }, next) {
 
 ### Server-side globally available dispatch function
 
-You can access to the `localDispatch` and `dispatch` functions from the server-side middleware object (from version 2.2).
+You can access to the `localDispatch`, `localOutDispatch` and `dispatch` functions from the server-side middleware object (from version 2.2).
 
 ```
 const myIoActionHandler = require('react-redux-socket/server')(io)
@@ -296,6 +298,7 @@ const myIoActionHandler = require('react-redux-socket/server')(io)
   
 myIoActionHandler.broadcast(action) /* send to all connected clients */
 myIoActionHandler.localDispatch(action) /* server-side handling */
+myIoActionHandler.localOutDispatch(action) /* executes the out handler chain, without sending the action to the client at the end */
 ```
 
 In the case of a localDispatch, all the handlers are called the same as with a normal action coming from the client.
