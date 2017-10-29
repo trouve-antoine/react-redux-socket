@@ -20,7 +20,9 @@ It uses socket.io by default, but I guess it could be ported to other socket lib
 
 ## News
 
-**Version 2.2.1** Further adds `localDispatch`.
+**Version 2.2.2** Further adds `promiseHandleOut`.
+
+**Version 2.2.1** Further adds `localOutDispatch`.
 
 **Version 2.2:** Adds `localDispatch` and `broadcast` in the server-side middleware object.
 
@@ -303,6 +305,15 @@ myIoActionHandler.localOutDispatch(action) /* executes the out handler chain, wi
 
 In the case of a localDispatch, all the handlers are called the same as with a normal action coming from the client.
 However, `socketEnv` won't contain the `socket` object  and the `dispatch` function.
+
+Additionaly, version 2.2.2 provides the function `promiseHandleOut`:
+
+```
+myIoActionHandler.promiseHandleOut(action)
+.then( (a, socketEnv) => {
+  /* this code is executed after the whole chain of out handlers is exhausted */
+})
+```
 
 ### Sever-side built-in handlers
 

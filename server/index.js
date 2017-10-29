@@ -62,6 +62,14 @@ const reactReduxSocketServer = function(io) {
   
   Object.assign(middleware, globalSocketEnv)
 
+  middleware.promiseHandleOut = (action, socketEnvExtra = {}) =>
+    new Promise( (resolve, reject) => {
+      const socketEnv = Object.assign({ from_action: action }, socketEnvExtra)
+      mp.handle_out(action, socketEnv, function (action) {
+        resolve(action, socketEnv)
+      })
+    })
+
   return middleware
 }
 
