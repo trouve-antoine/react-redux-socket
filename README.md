@@ -41,12 +41,12 @@ It uses socket.io by default, but I guess it could be ported to other socket lib
 Implemented as a small redux middleware:
 
 ```
-import { ReactReduxSocketMiddleware } from 'react-redux-socket/client'
+import { ReactActionSocketMiddleware } from 'react-redux-socket/client'
 
 const store = createStore(
     RootReducer,
     applyMiddleware(
-      ReactReduxSocketMiddleware("ws://localhost:3000/app1")
+      ReactActionSocketMiddleware("ws://localhost:3000/app1")
     )
   )
 ```
@@ -54,13 +54,13 @@ const store = createStore(
 or
 
 ```
-import { ReactReduxSocketMiddleware } from 'react-redux-socket/client'
+import { ReactActionSocketMiddleware } from 'react-redux-socket/client'
 const io = require('socket.io-client')("ws://localhost:3000/app1")
 
 const store = createStore(
     RootReducer,
     applyMiddleware(
-      ReactReduxSocketMiddleware(io)
+      ReactActionSocketMiddleware(io)
     )
   )
 ```
