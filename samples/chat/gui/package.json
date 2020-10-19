@@ -18,7 +18,7 @@
     "babel-preset-stage-0": "^6.16.0",
     "css-loader": "^0.26.1",
     "file-loader": "^0.9.0",
-    "object-path": "^0.11.3",
+    "object-path": "^0.11.5",
     "react": "^15.3.1",
     "react-dom": "^15.3.1",
     "react-hot-loader": "^3.0.0-beta.3",
