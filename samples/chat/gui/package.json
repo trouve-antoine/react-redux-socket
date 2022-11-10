@@ -39,6 +39,6 @@
   },
   "dependencies": {
     "serializerr": "^1.0.3",
-    "socket.io-client": "^2.0.4"
+    "socket.io-client": "^2.5.0"
   }
 }
